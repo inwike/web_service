@@ -1,0 +1,411 @@
+{% extends "main.html" %}
+{% load staticfiles %}
+{% load i18n %}
+{% load l10n %}
+
+{% block main-content %}
+<script type="text/javascript" src="{% static "chartjs/Chart.bundle.min.js" %}"></script>
+<script type="text/javascript" src="{% static "chartjs/utils.js" %}"></script>
+<!--<script type="text/javascript" src="{% static "chartjs/chartjs-plugin-labels.min.js" %}"></script>-->
+<style>
+    canvas {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+    }
+</style>
+<style>
+.imgcontainer {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+}
+
+.imgcontainer img {
+    width: 100%;
+    height: auto;
+}
+
+.imgcontainer .btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: #0078FF;
+    color: white;
+    font-size: 12px;
+    margin: 5px 5px 5px 5px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.imgcontainer .btn:hover {
+    background-color: #0000FF;
+}
+</style>
+
+
+<div class="container-fluid">
+
+<!-- LoadPhotoModal -->
+<div class="modal fade" id="LoadPhotoModal" tabindex="-1" role="dialog" aria-labelledby="LoadPhotoModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+    <form action="{% url "base:upload_photo" %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+      <div class="modal-header">
+        <h5 class="modal-title" id="LoadPhotoModalTitle">Заменить фотографию</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <input type="file" class="btn btn-sm" name="photo"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+        <input type="submit" class="btn btn-primary" value="Сохранить">
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+
+
+  <div class="row">
+  <div class="col-sm-12">
+    <div class="jumbotron media mb-1" style="padding: 0.5rem 1rem;">
+      <img src="{% static "images\inwike_logo.png" %}" class="align-self-start mr-3 pt-1" width="80px">
+      <div class="media-body">
+          <h4><b>ПРОФАЙЛ СОТРУДНИКА</b></h4>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-3 col-md-4 col-sm-12">
+        <div class="card">
+          <img src="{% url "base:photo" %}" class="card-img-top" alt="">
+          <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#LoadPhotoModal">Загрузить фото...</button>
+          <div class="card-body">
+            <div class="card-title">
+                <h5 class="pb-0 mb-0">{{ emp.params.emp }}</h5>
+                <h8 class="pt-0 mt-0"><b>{{ emp.params.position }}</b></h8>
+            </div>
+            <table class="card-text w-100">
+                <tr>
+                    <td><b>Стаж:&nbsp;</b></td>
+                    <td class="w-100">{{ data.params.exp_emp }}</td>
+                </tr>
+                <tr>
+                    <td> <b>Уровень:&nbsp;</b></td>
+                    <td class="w-100">{{ data.params.lvl_emp }}</td>
+                </tr>
+                <tr>
+                    <td><b>Рейтинг:&nbsp;</b></td>
+                    <td class="w-100">
+                        <div class="progress">
+                            <div class="progress-bar {% if data.params.raiting_emp < 50 %}bg-danger{% elif data.params.raiting_emp <= 75%}bg-warning{% else %}bg-success{% endif %} progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ data.params.raiting_emp }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ data.params.raiting_emp }}%">{{ data.params.raiting_emp }}%</div>
+                        </div>
+                    </td>
+                </tr>
+{#                <tr>#}
+{#                    <td><b>ИД:&nbsp;</b></td>#}
+{#                    <td class="w-100">{{ emp_uid }}</td>#}
+{#                </tr>#}
+            </table>
+            <!--<a href="#" class="btn btn-primary">Go somewhere</a>-->
+          </div>
+        </div>
+    </div>
+    <div class="col-lg-9 col-md-6 col-sm-12">
+		<canvas id="canvas" height="150rem"></canvas>
+	<script>
+		var randomScalingFactor = function() {
+			return Math.round(Math.random() * 100);
+		};
+
+		var color = Chart.helpers.color;
+		var config = {
+			type: 'radar',
+			data: {
+				labels: ['Знания, умения, мастерство', 'Коммуникабельность', 'Ответственность', 'Активность', 'Инновационность', 'Предприимчивость'],
+				datasets: [{
+					label: 'Среднее по группе',
+					backgroundColor: color(window.chartColors.red).alpha(0.2).rgbString(),
+					borderColor: window.chartColors.red,
+					pointBackgroundColor: window.chartColors.red,
+					data: [
+					    {% localize off %}
+                        {{ data.params.avr_knld }},
+						{{ data.params.avr_soc }},
+						{{ data.params.avr_resp }},
+						{{ data.params.avr_activ }},
+						{{ data.params.avr_innov }},
+						{{ data.params.avr_ent }}
+                        {% endlocalize %}
+					]
+				}, {
+					label: 'Малютина Ирина Иосифовна',
+					backgroundColor: color(window.chartColors.blue).alpha(0.2).rgbString(),
+					borderColor: window.chartColors.blue,
+					pointBackgroundColor: window.chartColors.blue,
+					data: [
+					    {% localize off %}
+                        {{ data.params.knld_12 }},
+						{{ data.params.soc_12 }},
+						{{ data.params.resp_12 }},
+						{{ data.params.activ_12 }},
+						{{ data.params.innov_12 }},
+						{{ data.params.ent_12 }}
+                        {% endlocalize %}
+					]
+				}]
+			},
+			options: {
+			    responsive: true,
+				legend: {
+					position: 'top',
+				},
+				title: {
+					display: true,
+					text: 'Профиль компетенций специалиста'
+				},
+				scale: {
+					ticks: {
+						beginAtZero: true
+					}
+				}
+			}
+		};
+    </script>
+
+    </div>
+  </div>
+
+   <div class="row card-group my-flex-card mt-3">
+          <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
+                <div class="card border-primary m-0">
+                  <h6 class="card-header bg-primary text-white pt-1 pb-1"><b>Знания/умения/мастерство</b></h6>
+                  <div class="card-body">
+                      <table class="card-text">
+                          <tr>
+                              <td><i class="fa fa-graduation-cap fa-3x pr-3" aria-hidden="true" style="color:#0078FF;"></i></td>
+                              <td><canvas id="canvas1" width="100%" height="100%"></canvas></td>
+                          </tr>
+                          <tr>
+                               <td><b>Рейтинг:&nbsp;</b></td>
+                               <td class="w-100">
+                                   <div class="progress">
+                                       {% localize off %}
+                                       <div class="progress-bar {% if data.params.knld_12 < 50 %}bg-danger{% elif data.params.knld_12 <= 75%}bg-warning{% else %}bg-success{% endif %} progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ data.params.knld_12 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ data.params.knld_12 }}%">{{ data.params.knld_12 }}%</div>
+                                       {% endlocalize %}
+                                   </div>
+                               </td>
+                          </tr>
+                      </table>
+                  </div>
+                    <div class="card-footer d-flex flex-row-reverse pt-1 pb-1"><a href="{% url 'base:scope' 0 %}" class="btn btn-sm btn-primary">Подробно &raquo;</a></div>
+                </div>
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
+                <div class="card border-primary">
+                  <h6 class="card-header bg-primary text-white pt-1 pb-1"><b>Коммуникабельность</b></h6>
+                  <div class="card-body">
+                      <table class="card-text">
+                          <tr>
+                              <td><i class="fa fa-users fa-3x pr-3" aria-hidden="true" style="color:#0078FF;"></i></td>
+                              <td><canvas id="canvas2" width="100%" height="100%"></canvas></td>
+                          </tr>
+                          <tr>
+                               <td><b>Рейтинг:&nbsp;</b></td>
+                               <td class="w-100">
+                                   <div class="progress">
+                                       {% localize off %}
+                                       <div class="progress-bar {% if data.params.soc_12 < 50 %}bg-danger{% elif data.params.soc_12 <= 75%}bg-warning{% else %}bg-success{% endif %} progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ data.params.soc_12 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ data.params.soc_12 }}%">{{ data.params.soc_12 }}%</div>
+                                       {% endlocalize %}
+                                   </div>
+                               </td>
+                          </tr>
+                      </table>
+                  </div>
+                  <div class="card-footer d-flex flex-row-reverse pt-1 pb-1"><a href="{% url 'base:scope' 1 %}" class="btn btn-sm btn-primary">Подробно &raquo;</a></div>
+                </div>
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-6 mb-1 mb-3">
+                <div class="card border-primary">
+                  <h6 class="card-header bg-primary text-white pt-1 pb-1"><b>Ответственность</b></h6>
+                  <div class="card-body">
+                      <table class="card-text">
+                          <tr>
+                              <td><i class="fa fa-flag fa-3x pr-3" aria-hidden="true" style="color:#0078FF;"></i></td>
+                              <td><canvas id="canvas3" width="100%" height="100%"></canvas></td>
+                          </tr>
+                          <tr>
+                               <td><b>Рейтинг:&nbsp;</b></td>
+                               <td class="w-100">
+                                   <div class="progress">
+                                       {% localize off %}
+                                       <div class="progress-bar {% if data.params.resp_12 < 50 %}bg-danger{% elif data.params.resp_12 <= 75%}bg-warning{% else %}bg-success{% endif %} progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ data.params.resp_12 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ data.params.resp_12 }}%">{{ data.params.resp_12 }}%</div>
+                                       {% endlocalize %}
+                                   </div>
+                               </td>
+                          </tr>
+                      </table>
+                  </div>
+                  <div class="card-footer d-flex flex-row-reverse pt-1 pb-1"><a href="{% url 'base:scope' 2 %}" class="btn btn-sm btn-primary">Подробно &raquo;</a></div>
+                </div>
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
+                <div class="card border-primary">
+                  <h6 class="card-header bg-primary text-white pt-1 pb-1"><b>Активность</b></h6>
+                  <div class="card-body">
+                      <table class="card-text">
+                          <tr>
+                              <td><i class="fa fa-trophy fa-3x pr-3" aria-hidden="true" style="color:#0078FF;"></i></td>
+                              <td><canvas id="canvas4" width="100%" height="100%"></canvas></td>
+                          </tr>
+                          <tr>
+                               <td><b>Рейтинг:&nbsp;</b></td>
+                               <td class="w-100">
+                                   <div class="progress">
+                                       {% localize off %}
+                                       <div class="progress-bar {% if data.params.activ_12 < 50 %}bg-danger{% elif data.params.activ_12 <= 75%}bg-warning{% else %}bg-success{% endif %} progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ data.params.activ_12 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ data.params.activ_12 }}%">{{ data.params.activ_12 }}%</div>
+                                       {% endlocalize %}
+                                   </div>
+                               </td>
+                          </tr>
+
+                      </table>
+                  </div>
+                  <div class="card-footer d-flex flex-row-reverse pt-1 pb-1"><a href="{% url 'base:scope' 3 %}" class="btn btn-sm btn-primary">Подробно &raquo;</a></div>
+                </div>
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
+                <div class="card border-primary">
+                  <h6 class="card-header bg-primary text-white pt-1 pb-1"><b>Инновационность</b></h6>
+                  <div class="card-body">
+                      <table class="card-text">
+                          <tr>
+                              <td><i class="fa fa-cog fa-3x pr-3" aria-hidden="true" style="color:#0078FF;"></i></td>
+                              <td><canvas id="canvas5" width="100%" height="100%"></canvas></td>
+                          </tr>
+                          <tr>
+                               <td><b>Рейтинг:&nbsp;</b></td>
+                               <td class="w-100">
+                                   <div class="progress">
+                                       {% localize off %}
+                                       <div class="progress-bar {% if data.params.innov_12 < 50 %}bg-danger{% elif data.params.innov_12 <= 75%}bg-warning{% else %}bg-success{% endif %} progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ data.params.innov_12 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ data.params.innov_12 }}%">{{ data.params.innov_12 }}%</div>
+                                       {% endlocalize %}
+                                   </div>
+                               </td>
+                          </tr>
+
+                      </table>
+                  </div>
+                    <div class="card-footer d-flex flex-row-reverse pt-1 pb-1"><a href="{% url 'base:scope' 4 %}" class="btn btn-sm btn-primary">Подробно &raquo;</a></div>
+                </div>
+          </div>
+          <div class="col-lg-4 col-md-4 col-sm-6 mb-3">
+                <div class="card border-primary">
+                  <h6 class="card-header bg-primary text-white pt-1 pb-1"><b>Предприимчивость</b></h6>
+                  <div class="card-body">
+                      <table class="card-text">
+                          <tr>
+                              <td><i class="fa fa-truck fa-3x pr-3" aria-hidden="true" style="color:#0078FF;"></i></td>
+                              <td><canvas id="canvas6" width="100%" height="100%"></canvas></td>
+                          </tr>
+                          <tr>
+                               <td><b>Рейтинг:&nbsp;</b></td>
+                               <td class="w-100">
+                                   <div class="progress">
+                                       {% localize off %}
+                                       <div class="progress-bar {% if data.params.ent_12 < 50 %}bg-danger{% elif data.params.ent_12 <= 75%}bg-warning{% else %}bg-success{% endif %} progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="{{ data.params.ent_12 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ data.params.ent_12 }}%">{{ data.params.ent_12 }}%</div>
+                                       {% endlocalize %}
+                                   </div>
+                               </td>
+                          </tr>
+
+                      </table>
+                  </div>
+                    <div class="card-footer d-flex flex-row-reverse pt-1 pb-1"><a href="{% url 'base:scope' 5 %}" class="btn btn-sm btn-primary">Подробно &raquo;</a></div>
+                </div>
+          </div>
+       </div>
+</div>
+
+<script>
+		var MONTHS = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+		var curMONTHS = [{% for m in data.months %}'{{ m }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+		var color = Chart.helpers.color;
+		var barChartData1 = {
+			labels: curMONTHS,
+			datasets: [{
+				backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+				borderColor: window.chartColors.red,
+				borderWidth: 1,
+				data: [{% for item in data.knlds %}{% localize off %}{{ item }}{% endlocalize %}{% if not forloop.last %},{% endif %}{% endfor %}]
+			}]
+		};
+		var barChartData2 = {
+			labels: curMONTHS,
+			datasets: [{
+				backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+				borderColor: window.chartColors.red,
+				borderWidth: 1,
+				data: [{% for item in data.socs %}{% localize off %}{{ item }}{% endlocalize %}{% if not forloop.last %},{% endif %}{% endfor %}]
+			}]
+		};
+		var barChartData3 = {
+			labels: curMONTHS,
+			datasets: [{
+				backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+				borderColor: window.chartColors.red,
+				borderWidth: 1,
+				data: [{% for item in data.resps %}{% localize off %}{{ item }}{% endlocalize %}{% if not forloop.last %},{% endif %}{% endfor %}]
+			}]
+		};
+		var barChartData4 = {
+			labels: curMONTHS,
+			datasets: [{
+				backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+				borderColor: window.chartColors.red,
+				borderWidth: 1,
+				data: [{% for item in data.activs %}{% localize off %}{{ item }}{% endlocalize %}{% if not forloop.last %},{% endif %}{% endfor %}]
+			}]
+		};
+		var barChartData5 = {
+			labels: curMONTHS,
+			datasets: [{
+				backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+				borderColor: window.chartColors.red,
+				borderWidth: 1,
+				data: [{% for item in data.innovs %}{% localize off %}{{ item }}{% endlocalize %}{% if not forloop.last %},{% endif %}{% endfor %}]
+			}]
+		};
+		var barChartData6 = {
+			labels: curMONTHS,
+			datasets: [{
+				backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+				borderColor: window.chartColors.red,
+				borderWidth: 1,
+				data: [{% for item in data.ents %}{% localize off %}{{ item }}{% endlocalize %}{% if not forloop.last %},{% endif %}{% endfor %}]
+			}]
+		};
+
+        var barChartOoptions = { responsive: true, maintainAspectRatio: false, legend: { position: top, display: false }  };
+
+	window.onload = function() {
+	        window.myRadar = new Chart(document.getElementById('canvas').getContext('2d'), config);
+			window.myBar1 = new Chart(document.getElementById('canvas1').getContext('2d'), { type: 'bar', data: barChartData1, 'options': barChartOoptions });
+			window.myBar2 = new Chart(document.getElementById('canvas2').getContext('2d'), { type: 'bar', data: barChartData2, 'options': barChartOoptions });
+			window.myBar3 = new Chart(document.getElementById('canvas3').getContext('2d'), { type: 'bar', data: barChartData3, 'options': barChartOoptions });
+			window.myBar4 = new Chart(document.getElementById('canvas4').getContext('2d'), { type: 'bar', data: barChartData4, 'options': barChartOoptions });
+			window.myBar5 = new Chart(document.getElementById('canvas5').getContext('2d'), { type: 'bar', data: barChartData5, 'options': barChartOoptions });
+			window.myBar6 = new Chart(document.getElementById('canvas6').getContext('2d'), { type: 'bar', data: barChartData6, 'options': barChartOoptions });
+		};
+
+</script>
+{% endblock %}  {# content #}
