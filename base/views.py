@@ -54,7 +54,7 @@ def base_login(function=None):
     def decorator(func):
         @wraps(func)
         def _wrapped_view(request, *args, **kwargs):
-            if request.session.get('emp_uid', False):
+            if request.session.get('org_uid', False):
                 return func(request, *args, **kwargs)
             return redirect(reverse_lazy('base:login'))
         return _wrapped_view
@@ -64,14 +64,15 @@ def base_login(function=None):
     return decorator
 
 def is_logged_on(request):
-    if request.session.get('emp_uid', False):
+    if request.session.get('org_uid', False):
         return True
     return False
 
 def base_processor(request):
     args={}
     args['logged_on'] = is_logged_on(request)
-    args['emp_uid'] = request.session.get('emp_uid', 'None')
+    args['org_uid'] = request.session.get('org_uid', 'None')
+    args['org_name'] = request.session.get('org_name', 'None')
     return args
 
 def loginView(request):
@@ -84,12 +85,16 @@ def loginView(request):
         return render(request, 'base_login.html', args)
 
     connection = conn1c()
-    emp_uid = connection.get_uid(username, password)
+    org_data = connection.get_uid(username, password)
 
-    if not emp_uid:
+    org_find = org_data['fined']
+    if not org_find:
         return render(request, 'base_login.html', args)
 
-    request.session['emp_uid'] = emp_uid
+    org_name = org_data['org_name']
+    org_uid = org_data['org_id']
+    request.session['org_uid'] = org_uid
+    request.session['org_name'] = org_name
     return redirect(reverse('base:home'))
 
 def nofoto(request):
@@ -131,7 +136,7 @@ def upload_photo(request):
 @base_login()
 def logoutView(request):
     try:
-        del request.session['emp_uid']
+        del request.session['org_uid']
     except KeyError:
         pass
     args = {}
@@ -147,15 +152,34 @@ class ProfileView(TemplateView):
         context = super().get_context_data(**kwargs)
 
         data_rating = conn1c()
-        # '87433449-7cc0-11e2-9368-001b11b25590'
-        emp_uid = self.request.session.get('emp_uid', '')
-        emp_rating = data_rating.emp_rating(emp_uid)
-        emp_data =  data_rating.emp_data(emp_uid)
+        org_uid = self.request.session.get('org_uid', '')
 
-        context['data'] = emp_rating
-        context['emp'] = emp_data
-        context['fio'] = 'Малютина Ирина Иосифовна'
-        context['position'] = 'Бухгалтер-экономист'
+        return context
+
+class ProjectsView(TemplateView):
+    template_name = 'base_projects.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        conn = conn1c()
+        org_uid = self.request.session.get('org_uid', '')
+        data = conn.list_proj(org_uid)
+        context['data'] = data
+
+        return context
+
+class EmployeesView(TemplateView):
+    template_name = 'base_employees.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        conn = conn1c()
+        org_uid = self.request.session.get('org_uid', '')
+        data = conn.list_exec(org_uid)
+        context['data'] = data
+
         return context
 
 class ScopeView(TemplateView):

@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Inwike HR Portal</title>
+    <title>Inwike ЦУС</title>
     <link rel="stylesheet" type="text/css" href="{% static "bootstrap/css/bootstrap.min.css" %}">
     <link rel="stylesheet" href="{% static "fonts/css/all.css" %}">
     <link rel="stylesheet" type="text/css"  href="{% static "jquery-ui/jquery-ui.structure.min.css" %}">
@@ -20,25 +20,16 @@
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarLeft" aria-controls="navbarLeft" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <a class="navbar-brand" href="{% url 'base:home' %}"><b>INWIKE HR</b></a>
+      <a class="navbar-brand" href="{% url 'base:home' %}"><b>INWIKE ЦУС</b></a>
 
       <div class="collapse navbar-collapse" id="navbarLeft">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="{% url 'base:home' %}"><i class="fa fa-chart-pie" aria-hidden="true"></i> Аналитика <span class="sr-only">(current)</span></a>
+            <a class="nav-link" href="{% url 'base:projects' %}"><i class="fa fa-truck" aria-hidden="true"></i> Проекты <span class="sr-only">(current)</span></a>
           </li>
-          <li class="nav-item dropdown active">
-            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-database" aria-hidden="true"></i> Информация <span class="sr-only">(current)</span></a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="{% url 'base:scope' 0 %}"><i class="fa fa-graduation-cap"></i>&nbsp; Знания/умения/мастерство</a></li>
-              <li><a class="dropdown-item" href="{% url 'base:scope' 1 %}"><i class="fa fa-users"></i>&nbsp; Коммуникабельность</a></li>
-              <li><a class="dropdown-item" href="{% url 'base:scope' 2 %}"><i class="fa fa-flag"></i>&nbsp; Ответственность</a></li>
-              <li><a class="dropdown-item" href="{% url 'base:scope' 3 %}"><i class="fa fa-trophy"></i>&nbsp; Активность</a></li>
-              <li><a class="dropdown-item" href="{% url 'base:scope' 4 %}"><i class="fa fa-cog"></i>&nbsp; Инновационность</a></li>
-              <li><a class="dropdown-item" href="{% url 'base:scope' 5 %}"><i class="fa fa-truck"></i>&nbsp; Предприимчивость</a></li>
-            </ul>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'base:employees' %}"><i class="fa fa-users" aria-hidden="true"></i> Сотрудники <span class="sr-only">(current)</span></a>
           </li>
-
         </ul>
 
         <ul class="navbar-nav mr-left">
